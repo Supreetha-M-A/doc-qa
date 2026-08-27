@@ -8,6 +8,8 @@ from pydantic import BaseModel
 
 from llm import stream_chat
 
+import traceback
+
 app = FastAPI()
 
 app.add_middleware(
@@ -36,7 +38,9 @@ def chat(req: ChatRequest):
         try:
             for text in stream_chat([m.model_dump() for m in req.messages], SYSTEM):
                 yield text
-        except Exception:
+        except Exception as e:
+            print(f"[doc-qa] generation error: {e}")
+            traceback.print_exc()
             yield "\n\n[error: generation failed]"
 
     return StreamingResponse(generate(), media_type="text/plain")
